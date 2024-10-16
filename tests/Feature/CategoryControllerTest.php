@@ -79,4 +79,57 @@ class CategoryControllerTest extends TestCase
                 'name' => 'New Category name',
             ]);
     }
+
+    public function test_store_create_new_category_with_unsuccessful_response()
+    {
+
+        $response = $this->postJson('/api/categories', [
+            'name' => '',
+        ]);
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['name']);
+    }
+
+    public function test_update_category_with_successful_response()
+    {
+        $category = Category::factory()->create();
+        $response = $this->putJson("/api/categories/$category->id", [
+            'name' => 'New Category name',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonFragment([
+                'name' => 'New Category name',
+            ]);
+    }
+
+    public function test_update_category_with_unsuccessful_response()
+    {
+        Category::factory(5)->create();
+        $category = Category::factory()->create();
+
+        $response = $this->putJson("/api/categories/$category->id", [
+            'name' => $category->name,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['name']);
+    }
+
+    public function test_destroy_category_with_successful_response()
+    {
+        $category = Category::factory()->create();
+        $response = $this->deleteJson("/api/categories/$category->id");
+        $response->assertStatus(200);
+        $this->assertDatabaseMissing('categories', [
+            'id' => $category->id,
+        ]);
+    }
+
+    public function test_destroy_category_with_unsuccessful_response()
+    {
+        Category::factory(5)->create();
+        $response = $this->deleteJson("/api/categories/999");
+        $response->assertStatus(404);
+    }
 }
