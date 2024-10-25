@@ -35,7 +35,8 @@ jobs:
       run: php artisan test
 
   deploy:
-    name: Build
+    needs: laravel-tests
+    name: Deploy to DigitalOcean
     runs-on: ubuntu-latest
     steps:
       - name: executing remote ssh commands using password
@@ -45,4 +46,8 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
-          script: whoami
+          script: |
+            cd online-store
+            git pull
+            docker compose -f docker-compose.production.yml up --build -d
+            docker exec os_app php artisan optimize
